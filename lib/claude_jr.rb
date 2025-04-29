@@ -6,18 +6,20 @@ require_relative "claude_jr/version"
 
 module ClaudeJr
   class Error < StandardError; end
+
   class APIError < Error; end
 
   class << self
     attr_accessor :api_key
 
-    def client = Client.new(api_key: self.api_key)
+    def client = Client.new(api_key: api_key)
   end
 
+  # Connection to the Claude API
   class Client
     API_URL = "https://api.anthropic.com/v1"
     API_VERSION = "2023-06-01"
-    MODEL = 'claude-3-7-sonnet-20250219'
+    MODEL = "claude-3-7-sonnet-20250219"
     MAX_TOKENS = 1024
 
     attr_accessor :connection
@@ -29,7 +31,7 @@ module ClaudeJr
         f.headers["anthropic-version"] = API_VERSION
         f.headers["content-type"] = "application/json"
         f.request :json
-        f.response :json, parser_options: { symbolize_names: true }
+        f.response :json, parser_options: {symbolize_names: true}
         f.adapter Faraday.default_adapter
       end
     end
@@ -39,16 +41,13 @@ module ClaudeJr
         model: model,
         max_tokens: max_tokens,
         messages: [
-          { role: "user", content: message }
+          {role: "user", content: message}
         ]
       }
       response = connection.post("messages", payload.to_json)
-      if response.success?
-        response.body
-      else
-        raise APIError, "API request failed: #{response.body}"
-      end
+      raise APIError, "API request failed: #{response.body}" unless response.success?
+
+      response.body
     end
   end
 end
-
