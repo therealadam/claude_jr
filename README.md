@@ -43,3 +43,9 @@ I'm swimming somewhat upstream by inlining all the logic in one file though. We'
 Same sort of thing when I asked to generate a tests. I wanted to avoid pulling in VCR, but also don't want to pay for API calls every test run. On the upside, o3-mini used `Faraday::Adapter::Test::Stubs` to define test matchers. TIL! On the downside, it was slightly wrong in its usage (assumed the base URL specified in the client would convey to test stubs). A bit of tweaking fixed this.
 
 So far, so good. Very much the "pairing with very fast but mostly wrong junior dev" experience.
+
+## Introduce response objects
+
+Again, Copilot (o3-mini is working really well at the time of writing; I'd rather use Sonnet-3.5 but that frequently errors out mysteriously in Copilot) is pretty adept at taking cURL examples from Anthropic's API docs and generating Ruby code and tests.
+
+...commentary on writing and refactoring tests along the way?

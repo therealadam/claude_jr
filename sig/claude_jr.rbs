@@ -1,16 +1,24 @@
+# See the writing guide of rbs: https://github.com/ruby/rbs#guides
 module ClaudeJr
+  class Error < StandardError; end
+  class APIError < Error
+    attr_reader error_response: ErrorResponse
+    def initialize: (String, ErrorResponse) -> void
+  end
+
   VERSION: String
-  # See the writing guide of rbs: https://github.com/ruby/rbs#guides
+
   attr_accessor self.api_key: String
 
-  def self.client: -> ClaudeJr::Client
+  def self.client: -> Client
+
+  def self.api_key: () -> String?
+  def self.api_key=: (String?) -> String?
 end
+
 require "faraday"
 
 module ClaudeJr
-  class Error < StandardError; end
-  class APIError < Error; end
-
   class Client
     # Constants
     API_URL: String
@@ -28,8 +36,26 @@ module ClaudeJr
     def chat: (message: String, model: String, max_tokens: Integer) -> untyped
   end
 
-  # Module-level accessors and factory for Client
-  def self.api_key: () -> String?
-  def self.api_key=: (String?) -> String?
-  def self.client: () -> Client
+  # New ChatResponse value object type signature
+  class ChatResponse
+    attr_reader content: Array[untyped]
+    attr_reader id: String
+    attr_reader model: String
+    attr_reader role: String
+    attr_reader stop_reason: String
+    attr_reader stop_sequence: untyped?
+    attr_reader type: String
+    attr_reader usage: Hash[Symbol, Integer]
+
+    def initialize: (untyped) -> void
+  end
+
+  # New ErrorResponse type signature
+  class ErrorResponse
+    attr_reader message: String
+    attr_reader error_type: String
+    attr_reader type: String
+
+    def initialize: (untyped) -> void
+  end
 end

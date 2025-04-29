@@ -7,7 +7,15 @@ require_relative "claude_jr/version"
 module ClaudeJr
   class Error < StandardError; end
 
-  class APIError < Error; end
+  # Exception wrapping an ErrorResponse
+  class APIError < Error
+    attr_reader :error_response
+
+    def initialize(message, error_response)
+      super(message)
+      @error_response = error_response
+    end
+  end
 
   class << self
     attr_accessor :api_key
@@ -45,9 +53,40 @@ module ClaudeJr
         ]
       }
       response = connection.post("messages", payload.to_json)
-      raise APIError, "API request failed: #{response.body}" unless response.success?
+      unless response.success?
+        error_resp = ErrorResponse.new(response.body)
+        raise APIError.new("API request failed: #{error_resp.message}", error_resp)
+      end
 
-      response.body
+      ChatResponse.new(response.body)
+    end
+  end
+
+  # Wrap successful API responses.
+  class ChatResponse
+    attr_reader :content, :id, :model, :role, :stop_reason, :stop_sequence, :type, :usage
+
+    def initialize(data)
+      @content = data.fetch(:content)
+      @id = data.fetch(:id)
+      @model = data.fetch(:model)
+      @role = data.fetch(:role)
+      @stop_reason = data.fetch(:stop_reason)
+      @stop_sequence = data.fetch(:stop_sequence)
+      @type = data.fetch(:type)
+      @usage = data.fetch(:usage)
+    end
+  end
+
+  # Wrap error API responses.
+  class ErrorResponse
+    attr_reader :message, :error_type, :type
+
+    def initialize(data)
+      error_data = data.fetch(:error, {})
+      @message = error_data.fetch(:message)
+      @error_type = error_data.fetch(:type)
+      @type = data.fetch(:type)
     end
   end
 end
