@@ -44,7 +44,7 @@ module ClaudeJr
       end
     end
 
-    def chat(message, model: MODEL, max_tokens: MAX_TOKENS)
+    def chat(message, model: MODEL, max_tokens: MAX_TOKENS) # steep:ignore
       payload = {
         model: model,
         max_tokens: max_tokens,
@@ -53,6 +53,7 @@ module ClaudeJr
         ]
       }
       response = connection.post("messages", payload.to_json)
+
       unless response.success?
         error_resp = ErrorResponse.new(response.body)
         raise APIError.new("API request failed: #{error_resp.message}", error_resp)

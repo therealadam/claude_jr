@@ -1,6 +1,7 @@
 # See the writing guide of rbs: https://github.com/ruby/rbs#guides
 module ClaudeJr
-  class Error < StandardError; end
+  class Error < StandardError
+  end
   class APIError < Error
     attr_reader error_response: ErrorResponse
     def initialize: (String, ErrorResponse) -> void
@@ -9,31 +10,19 @@ module ClaudeJr
   VERSION: String
 
   attr_accessor self.api_key: String
+  def self.client: () -> Client
 
-  def self.client: -> Client
-
-  def self.api_key: () -> String?
-  def self.api_key=: (String?) -> String?
-end
-
-require "faraday"
-
-module ClaudeJr
   class Client
-    # Constants
     API_URL: String
     API_VERSION: String
     MODEL: String
     MAX_TOKENS: Integer
 
-    # Attribute accessor for Faraday connection
     attr_accessor connection: Faraday::Connection
 
-    # Constructor with keyword argument
     def initialize: (api_key: String) -> void
 
-    # Chat method returns an untyped response or may raise APIError
-    def chat: (message: String, model: String, max_tokens: Integer) -> untyped
+    def chat: (message: String, model: String, max_tokens: Integer) -> ChatResponse
   end
 
   # New ChatResponse value object type signature

@@ -49,3 +49,5 @@ So far, so good. Very much the "pairing with very fast but mostly wrong junior d
 Again, Copilot (o3-mini is working really well at the time of writing; I'd rather use Sonnet-3.5 but that frequently errors out mysteriously in Copilot) is pretty adept at taking cURL examples from Anthropic's API docs and generating Ruby code and tests.
 
 ...commentary on writing and refactoring tests along the way?
+
+## tk. add tool usage or adapt to Ollama

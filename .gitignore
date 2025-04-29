@@ -11,4 +11,7 @@
 .rspec_status
 
 Gemfile.lock
+rbs_collection.lock.yaml
 .mise.toml
+
+.gem_rbs_collection
