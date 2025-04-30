@@ -23,6 +23,26 @@ module ClaudeJr
     def client = Client.new(api_key: api_key)
   end
 
+  # Value object representing a Claude API tool
+  class Tool
+    attr_reader :name, :description, :input_schema
+
+    def initialize(name:, description:, input_schema:)
+      @name = name
+      @description = description
+      @input_schema = input_schema
+    end
+
+    def to_h
+      {
+        name: name,
+        description: description,
+        input_schema: input_schema
+      }
+    end
+    alias_method :to_json, :to_h
+  end
+
   # Connection to the Claude API
   class Client
     API_URL = "https://api.anthropic.com/v1"
@@ -44,7 +64,7 @@ module ClaudeJr
       end
     end
 
-    def chat(message, model: MODEL, max_tokens: MAX_TOKENS) # steep:ignore
+    def chat(message, model: MODEL, max_tokens: MAX_TOKENS, tools: []) # steep:ignore
       payload = {
         model: model,
         max_tokens: max_tokens,
@@ -52,14 +72,18 @@ module ClaudeJr
           {role: "user", content: message}
         ]
       }
-      response = connection.post("messages", payload.to_json)
+      if tools.any?
+        payload[:tools] = tools.map(&:to_h)
+      end
+
+      response = connection.post("messages", payload)
 
       unless response.success?
         error_resp = ErrorResponse.new(response.body)
         raise APIError.new("API request failed: #{error_resp.message}", error_resp)
       end
 
-      ChatResponse.new(response.body)
+      ChatResponse.new(response.body) # steep:ignore
     end
   end
 
@@ -68,7 +92,7 @@ module ClaudeJr
     attr_reader :content, :id, :model, :role, :stop_reason, :stop_sequence, :type, :usage
 
     def initialize(data)
-      @content = data.fetch(:content)
+      @content = parse_content(data.fetch(:content))
       @id = data.fetch(:id)
       @model = data.fetch(:model)
       @role = data.fetch(:role)
@@ -77,14 +101,41 @@ module ClaudeJr
       @type = data.fetch(:type)
       @usage = data.fetch(:usage)
     end
+
+    private
+
+    def parse_content(content)
+      return content unless content.is_a?(Array) # steep:ignore
+
+      content.map do |item| # steep:ignore
+        case item
+        when Hash
+          case item[:type]
+          when "text"
+            {type: "text", text: item[:text]}
+          when "tool_use"
+            {
+              type: "tool_use",
+              id: item[:id],
+              name: item[:name],
+              input: item[:input]
+            }
+          else
+            item # Pass through unknown content types
+          end
+        else
+          item # Pass through non-Hash content
+        end
+      end
+    end
   end
 
   # Wrap error API responses.
   class ErrorResponse
     attr_reader :message, :error_type, :type
 
-    def initialize(data)
-      error_data = data.fetch(:error)
+    def initialize(data) # steep:ignore
+      error_data = data.fetch(:error, {}) # steep:ignore
       @message = error_data.fetch(:message)
       @error_type = error_data.fetch(:type)
       @type = data.fetch(:type)
