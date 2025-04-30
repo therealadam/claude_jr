@@ -1,4 +1,4 @@
-# Claude, Jr.
+# Notebook: Claude, Jr.
 
 <!-- TOC -->
 * [Claude, Jr.](#claude-jr)
@@ -66,4 +66,14 @@ Third, parse tool responses and invoke a method. Again, providing sample JSON or
 
 Another RBS + Steep side-quest: I gained a _lot_ of `steep:ignore` magic comments on this one. Not sure if the tool isn't working for me or if I'm using the tool wrong. 🙃
 
-## TK Adapt to Ollama API
+I'm kind of hand-waving the part where tools are actually used. Exercise left to reader, etc.
+
+## Adapt to Ollama API
+
+I threw a pretty large prompt at Claude 3.5 (I tried 3.7, but Copilot failed internally, I think) for this one. I included a bunch of samples from the [Ollama API docs](https://github.com/ollama/ollama/blob/main/docs/api.md#generate-a-chat-completion), so this change ended up bigger than I like. But, I went with the "vibe coding" energy and accepted all the changes and...the tests pass. Trying some console prompts works too. Impressive!
+
+That said, writing RBS signatures continues to be a point that models trip over. I don't know enough about how RBS structurally differs from more popular type systems like TypeScript, Python's new type system, Swift, Go, etc. But I suspect that there's a subtle difference that causes the model to output overly redundant or verbose types that trip up `steep`.
+
+Because it's vibe coding, I did fire up an IRB (`bin/console`) and immediately found a structural error (the API key attribute was removed from the `ClaudeJr` module). After that...it worked. Pretty impressive!
+
+## TK what we learned here

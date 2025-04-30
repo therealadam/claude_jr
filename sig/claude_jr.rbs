@@ -2,6 +2,7 @@
 module ClaudeJr
   class Error < StandardError
   end
+
   class APIError < Error
     attr_reader error_response: ErrorResponse
     def initialize: (String, ErrorResponse) -> void
@@ -9,59 +10,52 @@ module ClaudeJr
 
   VERSION: String
 
-  attr_accessor self.api_key: String
   def self.client: () -> Client
 
   class Tool
     attr_reader name: String
     attr_reader description: String
-    attr_reader input_schema: Hash[Symbol | String, untyped]
+    attr_reader parameters: Hash[Symbol | String, untyped]
 
-    def initialize: (name: String, description: String, input_schema: Hash[Symbol | String, untyped]) -> void
+    def initialize: (name: String, description: String, parameters: Hash[Symbol | String, untyped]) -> void
     def to_h: () -> Hash[Symbol, untyped]
     def to_json: () -> Hash[Symbol, untyped]
   end
 
   class Client
     API_URL: String
-    API_VERSION: String
     MODEL: String
-    MAX_TOKENS: Integer
 
     attr_accessor connection: Faraday::Connection
 
-    def initialize: (api_key: String) -> void
-
+    def initialize: () -> void
     def chat: (
       String message,
       ?model: String,
-      ?max_tokens: Integer,
-      ?tools: (Array[Tool | Hash[Symbol, untyped]] )
+      ?tools: (Array[Tool | Hash[Symbol, untyped]])?
     ) -> ChatResponse
   end
 
-  # New ChatResponse value object type signature
   class ChatResponse
-    attr_reader content: Array[Hash[Symbol, untyped]]
-    attr_reader id: String
     attr_reader model: String
-    attr_reader role: String
-    attr_reader stop_reason: String
-    attr_reader stop_sequence: untyped?
-    attr_reader type: String
-    attr_reader usage: Hash[Symbol, Integer]
+    attr_reader created_at: String
+    attr_reader message: Hash[Symbol, untyped]
+    attr_reader done: bool
+    attr_reader total_duration: Integer
+    attr_reader load_duration: Integer
+    attr_reader prompt_eval_count: Integer
+    attr_reader prompt_eval_duration: Integer
+    attr_reader eval_count: Integer
+    attr_reader eval_duration: Integer
 
     def initialize: (Hash[Symbol, untyped]) -> void
     private
-    def parse_content: (Array[Hash[Symbol, untyped]]) -> Array[Hash[Symbol, untyped]]
+    def parse_message: (Hash[Symbol, untyped]) -> Hash[Symbol, untyped]
+    def parse_tool_calls: (Array[Hash[Symbol, untyped]]?) -> Array[Hash[Symbol, untyped]]
   end
 
-  # New ErrorResponse type signature
   class ErrorResponse
     attr_reader message: String
-    attr_reader error_type: String
-    attr_reader type: String
-
     def initialize: (Hash[Symbol, untyped]) -> void
   end
 end

@@ -18,45 +18,41 @@ module ClaudeJr
   end
 
   class << self
-    attr_accessor :api_key
-
-    def client = Client.new(api_key: api_key)
+    def client = Client.new
   end
 
-  # Value object representing a Claude API tool
+  # Value object representing an Ollama API tool
   class Tool
-    attr_reader :name, :description, :input_schema
+    attr_reader :name, :description, :parameters
 
-    def initialize(name:, description:, input_schema:)
+    def initialize(name:, description:, parameters:)
       @name = name
       @description = description
-      @input_schema = input_schema
+      @parameters = parameters
     end
 
     def to_h
       {
-        name: name,
-        description: description,
-        input_schema: input_schema
+        type: "function",
+        function: {
+          name: name,
+          description: description,
+          parameters: parameters
+        }
       }
     end
     alias_method :to_json, :to_h
   end
 
-  # Connection to the Claude API
+  # Connection to the Ollama API
   class Client
-    API_URL = "https://api.anthropic.com/v1"
-    API_VERSION = "2023-06-01"
-    MODEL = "claude-3-7-sonnet-20250219"
-    MAX_TOKENS = 1024
+    API_URL = "http://localhost:11434/api"
+    MODEL = "llama3.2"
 
     attr_accessor :connection
 
-    def initialize(api_key:)
-      @api_key = api_key
+    def initialize
       self.connection = Faraday.new(url: API_URL) do |f|
-        f.headers["x-api-key"] = @api_key
-        f.headers["anthropic-version"] = API_VERSION
         f.headers["content-type"] = "application/json"
         f.request :json
         f.response :json, parser_options: {symbolize_names: true}
@@ -64,19 +60,23 @@ module ClaudeJr
       end
     end
 
-    def chat(message, model: MODEL, max_tokens: MAX_TOKENS, tools: [])
+    def chat(message, model: MODEL, tools: nil)
       payload = {
         model: model,
-        max_tokens: max_tokens,
         messages: [
           {role: "user", content: message}
-        ]
+        ],
+        stream: false
       }
-      if tools.any?
-        payload[:tools] = tools.map(&:to_h)
+
+      if tools&.any?
+        tools_array = Array(tools)
+        payload[:tools] = tools_array.map { |tool|
+          tool.is_a?(Tool) ? tool.to_h : tool
+        }
       end
 
-      response = connection.post("messages", payload)
+      response = connection.post("chat", payload)
 
       unless response.success?
         body = response.body # : Hash[Symbol, untyped]
@@ -89,59 +89,55 @@ module ClaudeJr
     end
   end
 
-  # Wrap successful API responses.
+  # Wrap successful API responses
   class ChatResponse
-    attr_reader :content, :id, :model, :role, :stop_reason, :stop_sequence, :type, :usage
+    attr_reader :model, :created_at, :message, :done, :total_duration,
+      :load_duration, :prompt_eval_count, :prompt_eval_duration,
+      :eval_count, :eval_duration
 
     def initialize(data)
-      @content = parse_content(data.fetch(:content))
-      @id = data.fetch(:id)
       @model = data.fetch(:model)
-      @role = data.fetch(:role)
-      @stop_reason = data.fetch(:stop_reason)
-      @stop_sequence = data.fetch(:stop_sequence)
-      @type = data.fetch(:type)
-      @usage = data.fetch(:usage)
+      @created_at = data.fetch(:created_at)
+      @message = parse_message(data.fetch(:message))
+      @done = data.fetch(:done)
+      @total_duration = data.fetch(:total_duration)
+      @load_duration = data.fetch(:load_duration)
+      @prompt_eval_count = data.fetch(:prompt_eval_count)
+      @prompt_eval_duration = data.fetch(:prompt_eval_duration)
+      @eval_count = data.fetch(:eval_count)
+      @eval_duration = data.fetch(:eval_duration)
     end
 
     private
 
-    def parse_content(content)
-      return content unless content.is_a?(Array)
+    def parse_message(message)
+      {
+        role: message.fetch(:role),
+        content: message.fetch(:content),
+        tool_calls: parse_tool_calls(message[:tool_calls])
+      }
+    end
 
-      content.map do |item|
-        case item
-        when Hash
-          case item[:type]
-          when "text"
-            {type: "text", text: item[:text]}
-          when "tool_use"
-            {
-              type: "tool_use",
-              id: item[:id],
-              name: item[:name],
-              input: item[:input]
-            }
-          else
-            item # Pass through unknown content types
-          end
-        else
-          item # Pass through non-Hash content
-        end
+    def parse_tool_calls(tool_calls)
+      return [] unless tool_calls&.any?
+
+      tool_calls.map do |call|
+        {
+          function: {
+            name: call.dig(:function, :name),
+            arguments: call.dig(:function, :arguments)
+          }
+        }
       end
     end
   end
 
-  # Wrap error API responses.
+  # Wrap error API responses
   class ErrorResponse
-    attr_reader :message, :error_type, :type
+    attr_reader :message
 
     def initialize(data)
-      empty = {} # : Hash[Symbol, untyped]
-      error_data = data.fetch(:error, empty)
-      @message = error_data.fetch(:message)
-      @error_type = error_data.fetch(:type)
-      @type = data.fetch(:type)
+      @message = data.fetch(:error, "Unknown error")
     end
   end
 end

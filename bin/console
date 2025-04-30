@@ -7,8 +7,6 @@ require "claude_jr"
 # You can add fixtures and/or initialization code here to make experimenting
 # with your gem easier. You can also use a different console, if you like.
 
-api_key = ENV.fetch("ANTHROPIC_API_KEY")
-ClaudeJr.api_key = api_key
 c = ClaudeJr.client # TODO set this in the IRB binding
 
 require "irb"
