@@ -84,7 +84,7 @@ module ClaudeJr
     attr_reader :message, :error_type, :type
 
     def initialize(data)
-      error_data = data.fetch(:error, {})
+      error_data = data.fetch(:error)
       @message = error_data.fetch(:message)
       @error_type = error_data.fetch(:type)
       @type = data.fetch(:type)
