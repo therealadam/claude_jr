@@ -33,7 +33,7 @@ module ClaudeJr
     def initialize: (api_key: String) -> void
 
     def chat: (
-      message: String,
+      String message,
       ?model: String,
       ?max_tokens: Integer,
       ?tools: (Array[Tool | Hash[Symbol, untyped]] )
@@ -53,7 +53,7 @@ module ClaudeJr
 
     def initialize: (Hash[Symbol, untyped]) -> void
     private
-    def parse_content: (Array[Hash[Symbol, untyped] | String] | String) -> Array[Hash[Symbol, untyped]]
+    def parse_content: (Array[Hash[Symbol, untyped]]) -> Array[Hash[Symbol, untyped]]
   end
 
   # New ErrorResponse type signature
@@ -62,6 +62,6 @@ module ClaudeJr
     attr_reader error_type: String
     attr_reader type: String
 
-    def initialize: (untyped) -> void
+    def initialize: (Hash[Symbol, untyped]) -> void
   end
 end

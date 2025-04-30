@@ -64,7 +64,7 @@ module ClaudeJr
       end
     end
 
-    def chat(message, model: MODEL, max_tokens: MAX_TOKENS, tools: []) # steep:ignore
+    def chat(message, model: MODEL, max_tokens: MAX_TOKENS, tools: [])
       payload = {
         model: model,
         max_tokens: max_tokens,
@@ -79,11 +79,13 @@ module ClaudeJr
       response = connection.post("messages", payload)
 
       unless response.success?
-        error_resp = ErrorResponse.new(response.body)
+        body = response.body # : Hash[Symbol, untyped]
+        error_resp = ErrorResponse.new(body)
         raise APIError.new("API request failed: #{error_resp.message}", error_resp)
       end
 
-      ChatResponse.new(response.body) # steep:ignore
+      body = response.body # : Hash[Symbol, untyped]
+      ChatResponse.new(body)
     end
   end
 
@@ -105,9 +107,9 @@ module ClaudeJr
     private
 
     def parse_content(content)
-      return content unless content.is_a?(Array) # steep:ignore
+      return content unless content.is_a?(Array)
 
-      content.map do |item| # steep:ignore
+      content.map do |item|
         case item
         when Hash
           case item[:type]
@@ -134,8 +136,9 @@ module ClaudeJr
   class ErrorResponse
     attr_reader :message, :error_type, :type
 
-    def initialize(data) # steep:ignore
-      error_data = data.fetch(:error, {}) # steep:ignore
+    def initialize(data)
+      empty = {} # : Hash[Symbol, untyped]
+      error_data = data.fetch(:error, empty)
       @message = error_data.fetch(:message)
       @error_type = error_data.fetch(:type)
       @type = data.fetch(:type)
