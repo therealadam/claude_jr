@@ -24,6 +24,22 @@ RSpec.describe ClaudeJr::Client do
       usage: {input_tokens: 2095, output_tokens: 503}
     }
   end
+  let(:multi_turn_body) do
+    {
+      content: [
+        {role: "user", content: "Hello there."},
+        {role: "assistant", content: "Hi, I'm Claude. How can I help you?"},
+        {role: "user", content: "Can you explain LLMs in plain English?"}
+      ],
+      id: "msg_test",
+      model: "claude-3-7-sonnet-20250219",
+      role: "assistant",
+      stop_reason: "end_turn",
+      stop_sequence: nil,
+      type: "message",
+      usage: {input_tokens: 2095, output_tokens: 503}
+    }
+  end
   let(:failure_body) do
     {
       error: {message: "Invalid request", type: "invalid_request_error"},
@@ -47,6 +63,26 @@ RSpec.describe ClaudeJr::Client do
         expect(response).to be_a(ClaudeJr::ChatResponse)
         expect(response.id).to eq("msg_test")
         expect(response.content).to eq([{text: "Hi! My name is Claude.", type: "text"}])
+      end
+    end
+
+    context "when response contains multiple turns" do
+      before do
+        stubs.post("/messages") do |_env|
+          [200, {"Content-Type" => "application/json"}, multi_turn_body.to_json]
+        end
+      end
+
+      it "returns the parsed ChatResponse object" do
+        response = subject.chat("Hello, world")
+
+        expect(response).to be_a(ClaudeJr::ChatResponse)
+        expect(response.id).to eq("msg_test")
+        expect(response.content).to eq([
+          {role: "user", content: "Hello there."},
+          {role: "assistant", content: "Hi, I'm Claude. How can I help you?"},
+          {role: "user", content: "Can you explain LLMs in plain English?"}
+        ])
       end
     end
 
