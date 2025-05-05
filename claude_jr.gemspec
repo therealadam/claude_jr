@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
 
   spec.summary = "An exploration"
   spec.homepage = "https://therealadam.github.io/claude_jr/"
-  spec.required_ruby_version = ">= 3.1.0"
+  spec.required_ruby_version = ">= 3.4.0"
 
   spec.metadata["homepage_uri"] = spec.homepage
 
