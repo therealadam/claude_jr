@@ -1,9 +1,13 @@
-# Notebook: Claude, Jr.
+# Claude, Jr. – a developer notebook
 
 <!-- TOC -->
-* [Claude, Jr.](#claude-jr)
+* [Notebook: Claude, Jr.](#notebook-claude-jr)
   * [Ground rules](#ground-rules)
-  * [The prompts and processes](#the-prompts-and-processes)
+  * [1. A baseline HTTP client](#1-a-baseline-http-client)
+  * [Introduce response objects](#introduce-response-objects)
+  * [Add tool usage](#add-tool-usage)
+  * [Adapt to Ollama API](#adapt-to-ollama-api)
+  * [TK what we learned here](#tk-what-we-learned-here)
 <!-- TOC -->
 
 A proof-of-concept for building out dependencies with LLM instead of supply chains.
