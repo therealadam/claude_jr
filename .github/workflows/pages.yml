@@ -1,0 +1,47 @@
+name: GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'README.md'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Create HTML directory
+        run: mkdir _site
+
+      - name: Download tufte.css
+        run: |
+          curl -o _site/tufte.css https://raw.githubusercontent.com/edwardtufte/tufte-css/gh-pages/tufte.css
+
+      - name: Convert README to HTML
+        run: |
+          pandoc README.md \
+            --standalone \
+            --metadata title="Claude, Jr. – a developer notebook" \
+            --css tufte.css \
+            --from gfm \
+            --to html5 \
+            -o _site/index.html
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
