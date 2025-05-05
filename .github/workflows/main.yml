@@ -23,5 +23,7 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           bundler-cache: true
+      - name: Install RBS definitions
+        run: bundle exec rbs collection install
       - name: Run the default task
         run: bundle exec rake
