@@ -19,16 +19,16 @@ namespace :pages do
     require "fileutils"
     site_dir = "_site"
     css_url = "https://raw.githubusercontent.com/edwardtufte/tufte-css/gh-pages/tufte.css"
-    
+
     FileUtils.mkdir_p(site_dir)
     css_path = File.join(site_dir, "tufte.css")
-    
+
     unless File.exist?(css_path)
       puts "Downloading tufte.css..."
       system("curl -o #{css_path} #{css_url}")
     end
   end
-  
+
   desc "Check if pandoc is installed"
   task :check_pandoc do
     unless system("which pandoc > /dev/null")
@@ -41,12 +41,12 @@ namespace :pages do
       end
     end
   end
-  
+
   desc "Build HTML from README"
   task build: [:setup, :check_pandoc] do
     title = "Claude, Jr. – a developer notebook"
     site_dir = "_site"
-    
+
     cmd = [
       "pandoc README.md",
       "--standalone",
@@ -56,7 +56,7 @@ namespace :pages do
       "--to html5",
       "-o #{site_dir}/index.html"
     ].join(" \\\n  ")
-    
+
     puts "Building HTML..."
     system(cmd)
     puts "Site generated: #{site_dir}/index.html"
