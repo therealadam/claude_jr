@@ -16,26 +16,17 @@ jobs:
       - uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v4
-      - name: Create HTML directory
-        run: mkdir _site
-      - name: Download tufte.css
-        run: |
-          curl -o _site/tufte.css https://raw.githubusercontent.com/edwardtufte/tufte-css/gh-pages/tufte.css
-      - name: Install pandoc
-        run: sudo apt-get update && sudo apt-get install -y pandoc
-      - name: Convert README to HTML
-        run: |
-          pandoc README.md \
-            --standalone \
-            --metadata title="Claude, Jr. – a developer notebook" \
-            --css tufte.css \
-            --from gfm \
-            --to html5 \
-            -o _site/index.html
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.0'
+          bundler-cache: true
+      - name: Build site with Rake
+        run: bundle exec rake pages:build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
 # To debug locally, you can run:
-# act push -j deploy
+# bundle exec rake pages:build
