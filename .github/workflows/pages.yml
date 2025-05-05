@@ -29,6 +29,9 @@ jobs:
         run: |
           curl -o _site/tufte.css https://raw.githubusercontent.com/edwardtufte/tufte-css/gh-pages/tufte.css
 
+      - name: Install pandoc
+        run: sudo apt-get update && sudo apt-get install -y pandoc
+
       - name: Convert README to HTML
         run: |
           pandoc README.md \
