@@ -16,3 +16,5 @@ rbs_collection.lock.yaml
 
 .gem_rbs_collection
 _site
+
+.zed
